@@ -4,7 +4,7 @@ using Tutor_NET106.DAL.Models;
 
 namespace Tutor_NET106.DAL.Configurations
 {
-    internal class ProductConfigs : IEntityTypeConfiguration<Product>
+    public class ProductConfigs : IEntityTypeConfiguration<Product>
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {

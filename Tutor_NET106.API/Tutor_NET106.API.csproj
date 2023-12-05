@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\Tutor_NET106.BUS\Tutor_NET106.BUS.csproj" />
+    <ProjectReference Include="..\Tutor_NET106.DAL\Tutor_NET106.DAL.csproj" />
   </ItemGroup>
 
 </Project>

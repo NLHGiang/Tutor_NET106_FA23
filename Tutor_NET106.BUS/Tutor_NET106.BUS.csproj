@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
+    <Folder Include="ViewModels\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tutor_NET106.DAL\Tutor_NET106.DAL.csproj" />
   </ItemGroup>
 
 </Project>
