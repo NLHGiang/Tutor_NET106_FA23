@@ -1,9 +1,151 @@
 ﻿@page "/"
+@using Tutor_NET106.DAL.Models
+@inject IHttpClientFactory _httpClientFactory
+@inject IWebHostEnvironment _environment
 
-<PageTitle>Index</PageTitle>
+<h4>
+    Danh sách Category
+</h4>
 
-<h1>Hello, world!</h1>
+@if (listCategories == null)
+{
+    <h5>Loading...</h5>
+}
+else
+{
+    @foreach (var cate in listCategories)
+    {
+        <p>
+            @(listCategories.IndexOf(cate) + 1) - @cate.Name
+            <button @onclick="@(() => Delete(@cate.Id))">Xóa</button>
+            <button @onclick="@(() => Details(@cate.Id))">Chi tiết</button>
+        </p>
+    }
+}
 
-Welcome to your new app.
+<input @bind=category.Name>
+<span>@errorMessage</span>
+<button @onclick="@(() => Create())">Thêm</button>
+<button @onclick="@(() => Update())">Sửa</button>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<br />
+<hr />
+<InputFile OnChange="UploadImage"></InputFile>
+<span>@errorFileMessage</span>
+
+@if (uploadFile != null)
+{
+    <img src=@("https://localhost:7264/images/" + @uploadFile.Name) />
+}
+
+@code {
+    List<Category> listCategories = null;
+    Category category = new();
+    string errorMessage = string.Empty;
+    string errorFileMessage = string.Empty;
+
+    IBrowserFile uploadFile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    Task SetName(ChangeEventArgs e)
+    {
+        category.Name = e.Value.ToString();
+
+        return Task.CompletedTask;
+    }
+
+    async Task UploadImage(InputFileChangeEventArgs e)
+    {
+        uploadFile = e.File;
+
+        if(uploadFile != null)
+        {
+            var allowedExtensions = new[] { ".jpg", ".png", ".gif" };
+            var extension = System.IO.Path.GetExtension(uploadFile.Name);
+            if (!allowedExtensions.Contains(extension))
+            {
+                errorFileMessage = "Accept .jpg, .png, .gif";
+            }
+            else
+            {
+                Console.WriteLine(uploadFile.Name);
+
+                string path = Path.Combine(_environment.WebRootPath, "images", uploadFile.Name);
+
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await uploadFile.OpenReadStream().CopyToAsync(fileStream);
+                }
+
+                errorFileMessage = string.Empty;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    async Task LoadData()
+    {
+        await Task.Delay(1000);
+
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetFromJsonAsync<List<Category>>("https://localhost:7207/api/Categories");
+
+        listCategories = response;
+
+        errorMessage = string.Empty;
+        errorFileMessage = string.Empty;
+    }
+
+    async Task Delete(Guid id)
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.DeleteAsync($"https://localhost:7207/api/Categories/{id}");
+
+        await LoadData();
+    }
+
+    async Task Create()
+    {
+        if (string.IsNullOrWhiteSpace(category.Name))
+        {
+            errorMessage = "Tên không được rỗng hoặc chứa toàn khoảng trắng";
+        }
+        else
+        {
+            category.Id = Guid.NewGuid();
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.PostAsJsonAsync<Category>("https://localhost:7207/api/Categories", category);
+
+            await LoadData();
+        }
+    }
+
+    async Task Details(Guid id)
+    {
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetFromJsonAsync<Category>($"https://localhost:7207/api/Categories/{id}");
+
+        category = response;
+    }
+
+    async Task Update()
+    {
+        if (string.IsNullOrWhiteSpace(category.Name))
+        {
+            errorMessage = "Tên không được rỗng hoặc chứa toàn khoảng trắng";
+        }
+        else
+        {
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.PutAsJsonAsync<Category>("https://localhost:7207/api/Categories", category);
+
+            await LoadData();
+
+        }
+    }
+}

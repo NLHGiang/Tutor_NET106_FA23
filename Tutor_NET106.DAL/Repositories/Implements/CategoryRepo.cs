@@ -22,7 +22,7 @@ namespace Tutor_NET106.DAL.Repositories.Implements
 
         public List<Category> GetList()
         {
-            var listObj = _dbContext.Categories.ToList();
+            var listObj = _dbContext.Categories.OrderBy(c => c.Name).ToList();
 
             return listObj;
         }
